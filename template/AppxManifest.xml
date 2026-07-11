@@ -32,12 +32,18 @@
 			<Extensions>
 				<desktop4:Extension Category="windows.fileExplorerContextMenus">
 					<desktop4:FileExplorerContextMenus>
-						<desktop5:ItemType Type="Directory">
+											            <desktop5:ItemType Type=".appx">
 							<desktop5:Verb Id="ContextMenuProj1" Clsid="@@UUID@@" />
-						</desktop5:ItemType>
-						<desktop5:ItemType Type="Directory\Background">
+            </desktop5:ItemType>
+            <desktop5:ItemType Type=".msix">
 							<desktop5:Verb Id="ContextMenuProj1" Clsid="@@UUID@@" />
-						</desktop5:ItemType>
+            </desktop5:ItemType>
+            <desktop5:ItemType Type=".appxbundle">
+							<desktop5:Verb Id="ContextMenuProj1" Clsid="@@UUID@@" />
+            </desktop5:ItemType>
+            <desktop5:ItemType Type=".msixbundle">
+							<desktop5:Verb Id="ContextMenuProj1" Clsid="@@UUID@@" />
+            </desktop5:ItemType>
 						<!--Show When Files Selected-->
 						<!--<desktop5:ItemType Type="*">
 							<desktop5:Verb Id="ContextMenuProj1" Clsid="@@UUID@@" />
