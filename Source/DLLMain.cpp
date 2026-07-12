@@ -15,16 +15,21 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#define ContextMenuUUID "@@UUID@@" 
+
+// ---- 第一个菜单项的宏 ----
+#define ContextMenuUUID  "@@UUID@@"
 #define ContextMenuTitle L"@@TITLE@@"
-#define ContextMenuCMD L"@@CMD@@"
-#define ContextMenuIcon L"@@ICON@@"
+#define ContextMenuCMD   L"@@CMD@@"
+#define ContextMenuIcon  L"@@ICON@@"
+
+// ---- 第二个菜单项的宏 ----
 #define ContextMenuUUID2  "@@UUID2@@"
 #define ContextMenuTitle2 L"@@TITLE2@@"
 #define ContextMenuCMD2   L"@@CMD2@@"
 #define ContextMenuIcon2  L"@@ICON2@@"
+
 using namespace Microsoft::WRL;
-extern "C" IMAGE_DOS_HEADER __ImageBase; 
+extern "C" IMAGE_DOS_HEADER __ImageBase;
 
 BOOL APIENTRY DllMain(HMODULE hModule,
     DWORD ul_reason_for_call,
@@ -42,9 +47,11 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 
 class ExplorerCommandBase : public RuntimeClass<RuntimeClassFlags<ClassicCom>, IExplorerCommand, IObjectWithSite> {
 public:
+    // 每个子类都要实现自己的 Title / Icon / Cmd
     virtual const wchar_t* Title() = 0;
     virtual const wchar_t* Icon() = 0;
     virtual const wchar_t* Cmd() = 0;
+
     virtual const EXPCMDFLAGS Flags() { return ECF_DEFAULT; }
     virtual const EXPCMDSTATE State(_In_opt_ IShellItemArray* selection) { return ECS_ENABLED; }
 
@@ -57,30 +64,32 @@ public:
         *name = title.release();
         return S_OK;
     }
-IFACEMETHODIMP GetIcon(_In_opt_ IShellItemArray*, _Outptr_result_nullonfailure_ PWSTR* icon)
-{
-    const wchar_t* iconName = Icon();
-    if (PathIsRelativeW(iconName))
+
+    IFACEMETHODIMP GetIcon(_In_opt_ IShellItemArray*, _Outptr_result_nullonfailure_ PWSTR* icon)
     {
+        const wchar_t* iconName = Icon();
 
-        wchar_t dllPath[MAX_PATH];
-        if (!GetModuleFileNameW((HMODULE)&__ImageBase, dllPath, MAX_PATH))
-            return E_FAIL;
+        if (PathIsRelativeW(iconName))
+        {
+            wchar_t dllPath[MAX_PATH];
+            if (!GetModuleFileNameW((HMODULE)&__ImageBase, dllPath, MAX_PATH))
+                return E_FAIL;
 
-        PathRemoveFileSpecW(dllPath);
+            PathRemoveFileSpecW(dllPath);
 
-        wchar_t iconPath[MAX_PATH];
-        swprintf_s(iconPath, MAX_PATH, L"%s\\%s", dllPath, iconName);
+            wchar_t iconPath[MAX_PATH];
+            swprintf_s(iconPath, MAX_PATH, L"%s\\%s", dllPath, iconName);
 
-        *icon = _wcsdup(iconPath);
+            *icon = _wcsdup(iconPath);
+        }
+        else
+        {
+            *icon = _wcsdup(iconName);
+        }
+
+        return S_OK;
     }
-    else
-    {
-        *icon = _wcsdup(iconName);
-    }
 
-    return S_OK;
-}
     IFACEMETHODIMP GetToolTip(_In_opt_ IShellItemArray*, _Outptr_result_nullonfailure_ PWSTR* infoTip)
     {
         *infoTip = nullptr;
@@ -96,7 +105,8 @@ IFACEMETHODIMP GetIcon(_In_opt_ IShellItemArray*, _Outptr_result_nullonfailure_ 
         *cmdState = State(selection);
         return S_OK;
     }
-IFACEMETHODIMP Invoke(_In_opt_ IShellItemArray* selection, _In_opt_ IBindCtx*) noexcept
+
+    IFACEMETHODIMP Invoke(_In_opt_ IShellItemArray* selection, _In_opt_ IBindCtx*) noexcept
     try {
         HWND parent = nullptr;
         if (m_site) {
@@ -118,9 +128,10 @@ IFACEMETHODIMP Invoke(_In_opt_ IShellItemArray* selection, _In_opt_ IBindCtx*) n
 
                 // 获取 DLL 所在目录
                 wchar_t dllPath[MAX_PATH];
-                if (!GetModuleFileNameW((HMODULE)&__ImageBase, dllPath, MAX_PATH))
+                if (!GetModuleFileNameW((HMODULE)&__ImageBase, dllPath, MAX_PATH)) {
                     CoTaskMemFree(itemName);
                     return E_FAIL;
+                }
                 PathRemoveFileSpecW(dllPath);
 
                 wchar_t cmdPath[MAX_PATH];
@@ -151,7 +162,6 @@ IFACEMETHODIMP Invoke(_In_opt_ IShellItemArray* selection, _In_opt_ IBindCtx*) n
     }
     CATCH_RETURN();
 
-
     IFACEMETHODIMP GetFlags(_Out_ EXPCMDFLAGS* flags)
     {
         *flags = Flags();
@@ -175,6 +185,7 @@ protected:
     ComPtr<IUnknown> m_site;
 };
 
+// ---------------- 第一个菜单项 ----------------
 class __declspec(uuid(ContextMenuUUID)) ExplorerCommandHandler final : public ExplorerCommandBase {
 public:
     const wchar_t* Title() override { return ContextMenuTitle; }
@@ -182,6 +193,7 @@ public:
     const wchar_t* Cmd()   override { return ContextMenuCMD; }
 };
 
+// ---------------- 第二个菜单项 ----------------
 class __declspec(uuid(ContextMenuUUID2)) ExplorerCommandHandler2 final : public ExplorerCommandBase {
 public:
     const wchar_t* Title() override { return ContextMenuTitle2; }
