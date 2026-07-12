@@ -10,6 +10,8 @@ function Get-Escaped {
 
 $settings=(Get-Content .\settings.json)|ConvertFrom-Json
 $app_name = $settings.app_name
+$exe_name = $settings.exe_name
+$bat_name = $settings.bat_name
 $app_id = $settings.app_id
 $app_description = $settings.app_description
 $icon = Get-Escaped -WordParam $settings.icon
@@ -23,10 +25,13 @@ $cmd2 = Get-Escaped -WordParam $settings.cmd2
 $uuid2 = [System.Guid]::NewGuid().toString().toUpper()
 $name2 = $settings.name2
 # Write-Output $cmd $title $icon
-(Get-Content .\ContextMenuDLL\DLLMain.cpp).Replace("@@TITLE@@",$title).Replace("@@ICON@@",$icon).Replace("@@CMD@@",$cmd).Replace("@@UUID@@",$uuid).Replace("@@TITLE2@@",$title2).Replace("@@ICON2@@",$icon2).Replace("@@CMD2@@",$cmd2).Replace("@@UUID2@@",$uuid2) | Out-File -Encoding utf8 .\Release\ContextMenu.cpp -Force
-(Get-Content .\template\AppxManifest.xml).Replace("@@UUID@@",$uuid).Replace("@@UUID2@@",$uuid2).Replace("@@APPNAME@@",$app_name).Replace("@@APPID@@",$app_id).Replace("@@APPDESCRIPTION@@",$app_description) | Out-File -Encoding utf8 .\Release\sparse-pkg\AppxManifest.xml -Force
+(Get-Content .\Source\DLLMain.cpp).Replace("@@TITLE@@",$title).Replace("@@ICON@@",$icon).Replace("@@CMD@@",$cmd).Replace("@@UUID@@",$uuid).Replace("@@TITLE2@@",$title2).Replace("@@ICON2@@",$icon2).Replace("@@CMD2@@",$cmd2).Replace("@@UUID2@@",$uuid2) | Out-File -Encoding utf8 .\Release\ContextMenu.cpp -Force
+(Get-Content .\Source\EXEMain.cpp).Replace("@@BATNAME@@",$bat_name) | Out-File -Encoding utf8 .\Release\EXEMain.cpp -Force
+(Get-Content .\template\AppxManifest.xml).Replace("@@UUID@@",$uuid).Replace("@@UUID2@@",$uuid2).Replace("@@APPNAME@@",$app_name).Replace("@@APPID@@",$app_id).Replace("@@APPDESCRIPTION@@",$app_description).Replace("@@EXENAME@@",$exe_name) | Out-File -Encoding utf8 .\Release\sparse-pkg\AppxManifest.xml -Force
 Invoke-WebRequest https://www.nuget.org/api/v2/package/Microsoft.Windows.ImplementationLibrary/1.0.201120.3 -OutFile Release\wil.zip; Expand-Archive -Force -LiteralPath Release\wil.zip Release\WilUnzipped; Copy-Item -Force -r "Release\WilUnzipped\include\wil" Release
 # Begin Compile
+cl.exe /c /Zi /nologo /W3 /WX- /diagnostics:column /sdl /Oi /GL /O2 /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /D _USREXE /D _WINEXE /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /permissive- /Fp"Release\EXEMain.pch" /Fo"Release\\" /Fd"Release\vc142.pdb" /external:W3 /Gd /TP /analyze- /FC /errorReport:queue "Release\EXEMain.cpp"
+link.exe /ERRORREPORT:QUEUE /OUT:"Release\"+$exe_name /INCREMENTAL:NO /NOLOGO runtimeobject.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib shlwapi.lib /DEF:"Release\Source.def" /MANIFEST /MANIFESTUAC:NO /manifest:embed /PDB:"Release\EXEMain.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG:incremental /LTCGOUT:"Release\EXEMain.iobj" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"Release\EXEMain.lib" /MACHINE:%ARCH% /EXE "Release\EXEMain.obj"
 cl.exe /c /Zi /nologo /W3 /WX- /diagnostics:column /sdl /Oi /GL /O2 /Oy- /D WIN32 /D NDEBUG /D _WINDOWS /D _USRDLL /D _WINDLL /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /permissive- /Fp"Release\ContextMenu.pch" /Fo"Release\\" /Fd"Release\vc142.pdb" /external:W3 /Gd /TP /analyze- /FC /errorReport:queue "Release\ContextMenu.cpp"
 link.exe /ERRORREPORT:QUEUE /OUT:"Release\ContextMenu.dll" /INCREMENTAL:NO /NOLOGO runtimeobject.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib shlwapi.lib /DEF:"Release\Source.def" /MANIFEST /MANIFESTUAC:NO /manifest:embed /PDB:"Release\ContextMenu.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG:incremental /LTCGOUT:"Release\ContextMenu.iobj" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"Release\ContextMenu.lib" /MACHINE:%ARCH% /DLL "Release\ContextMenu.obj"
 MakeAppx.exe pack /d "Release\\sparse-pkg\\" /p "Release\apex-sparse.appx" /nv

@@ -10,4 +10,6 @@
     "title2":"Register Appx Package",
     "cmd2":"RegisterAppxPackage.bat %1",
     "name2":"RegisterAppxPackage",
+    "exe_name":"start.exe",
+    "bat_name":"start.bat"
 }
