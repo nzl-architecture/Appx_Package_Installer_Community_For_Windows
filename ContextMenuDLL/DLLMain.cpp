@@ -89,8 +89,8 @@ IFACEMETHODIMP GetIcon(_In_opt_ IShellItemArray*, _Outptr_result_nullonfailure_ 
         *cmdState = State(selection);
         return S_OK;
     }
-    IFACEMETHODIMP Invoke(_In_opt_ IShellItemArray* selection, _In_opt_ IBindCtx*) noexcept
-        try {
+IFACEMETHODIMP Invoke(_In_opt_ IShellItemArray* selection, _In_opt_ IBindCtx*) noexcept
+    try {
         HWND parent = nullptr;
         if (m_site) {
             ComPtr<IOleWindow> oleWindow;
@@ -102,33 +102,47 @@ IFACEMETHODIMP GetIcon(_In_opt_ IShellItemArray*, _Outptr_result_nullonfailure_ 
             DWORD count;
             RETURN_IF_FAILED(selection->GetCount(&count));
 
-            IShellItem* psi;
-            LPWSTR itemName;
-
-            wchar_t cmdline_buf[1028];
-            DWORD size = sizeof(cmdline_buf);
-
-
-
             for (DWORD i = 0; i < count; ++i) {
-                selection->GetItemAt(i, &psi);
+                ComPtr<IShellItem> psi;
+                RETURN_IF_FAILED(selection->GetItemAt(i, &psi));
+
+                PWSTR itemName = nullptr;
                 RETURN_IF_FAILED(psi->GetDisplayName(SIGDN_FILESYSPATH, &itemName));
 
-                std::wstring cmdline= ContextMenuCMD ;
-                cmdline = cmdline.replace(cmdline.find(L"%1"), 2, itemName);
+                // 获取 DLL 所在目录
+                wchar_t dllPath[MAX_PATH];
+                if (!GetModuleFileNameW((HMODULE)&__ImageBase, dllPath, MAX_PATH))
+                    return E_FAIL;
+                PathRemoveFileSpecW(dllPath);
+
+                wchar_t cmdPath[MAX_PATH];
+                swprintf_s(cmdPath, MAX_PATH, L"%s\\%s", dllPath, ContextMenuCMD);
+
+                std::wstring cmdline = cmdPath;
+                size_t pos = cmdline.find(L"%1");
+                if (pos != std::wstring::npos) {
+                    cmdline.replace(pos, 2, itemName);
+                }
 
                 STARTUPINFO si = {};
+                si.cb = sizeof(si);
                 PROCESS_INFORMATION pi = {};
 
-                CreateProcess(
+                CreateProcessW(
                     nullptr, (LPWSTR)cmdline.c_str(),
-                    nullptr, nullptr, false, 0, nullptr, nullptr, &si, &pi);
+                    nullptr, nullptr, FALSE, 0, nullptr, nullptr, &si, &pi);
+
+                if (pi.hProcess) CloseHandle(pi.hProcess);
+                if (pi.hThread) CloseHandle(pi.hThread);
+
+                CoTaskMemFree(itemName);
             }
         }
 
         return S_OK;
     }
     CATCH_RETURN();
+
 
     IFACEMETHODIMP GetFlags(_Out_ EXPCMDFLAGS* flags)
     {
