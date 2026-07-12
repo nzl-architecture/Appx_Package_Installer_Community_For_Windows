@@ -16,7 +16,7 @@
 		<DisplayName>@@APPNAME@@</DisplayName>
 		<PublisherDisplayName>Microsoft Corporation</PublisherDisplayName>
 		<Logo>icon.png</Logo>
-		<uap10:AllowExternalContent>true</uap10:AllowExternalContent>
+		<uap10:AllowExternalContent>false</uap10:AllowExternalContent>
 	</Properties>
 	<Dependencies>
 		<TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19000.0" MaxVersionTested="10.0.19000.0" />
