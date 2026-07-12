@@ -61,9 +61,7 @@
 						</com:SurrogateServer>
 					</com:ComServer>
 				</com:Extension>
-			</Extensions>
-			<Extension>
-			<uap:Extension Category="windows.fileTypeAssociation">
+				     <uap:Extension Category="windows.fileTypeAssociation">
           <uap:FileTypeAssociation Name="packageextension">
             <uap:Logo>icon.png</uap:Logo>
             <uap:InfoTip>Windows Application Package</uap:InfoTip>
@@ -75,7 +73,7 @@
             </uap:SupportedFileTypes>
           </uap:FileTypeAssociation>
         </uap:Extension>
-        </Extension>
+			</Extensions>
 		</Application>
 	</Applications>
 </Package>
