@@ -19,6 +19,10 @@
 #define ContextMenuTitle L"@@TITLE@@"
 #define ContextMenuCMD L"@@CMD@@"
 #define ContextMenuIcon L"@@ICON@@"
+#define ContextMenuUUID2  "@@UUID2@@"
+#define ContextMenuTitle2 L"@@TITLE2@@"
+#define ContextMenuCMD2   L"@@CMD2@@"
+#define ContextMenuIcon2  L"@@ICON2@@"
 using namespace Microsoft::WRL;
 extern "C" IMAGE_DOS_HEADER __ImageBase; 
 
@@ -39,6 +43,8 @@ BOOL APIENTRY DllMain(HMODULE hModule,
 class ExplorerCommandBase : public RuntimeClass<RuntimeClassFlags<ClassicCom>, IExplorerCommand, IObjectWithSite> {
 public:
     virtual const wchar_t* Title() = 0;
+    virtual const wchar_t* Icon() = 0;
+    virtual const wchar_t* Cmd() = 0;
     virtual const EXPCMDFLAGS Flags() { return ECF_DEFAULT; }
     virtual const EXPCMDSTATE State(_In_opt_ IShellItemArray* selection) { return ECS_ENABLED; }
 
@@ -53,7 +59,8 @@ public:
     }
 IFACEMETHODIMP GetIcon(_In_opt_ IShellItemArray*, _Outptr_result_nullonfailure_ PWSTR* icon)
 {
-    if (PathIsRelativeW(ContextMenuIcon))
+    const wchar_t* iconName = Icon();
+    if (PathIsRelativeW(iconName))
     {
 
         wchar_t dllPath[MAX_PATH];
@@ -63,13 +70,13 @@ IFACEMETHODIMP GetIcon(_In_opt_ IShellItemArray*, _Outptr_result_nullonfailure_ 
         PathRemoveFileSpecW(dllPath);
 
         wchar_t iconPath[MAX_PATH];
-        swprintf_s(iconPath, MAX_PATH, L"%s\\%s", dllPath, ContextMenuIcon);
+        swprintf_s(iconPath, MAX_PATH, L"%s\\%s", dllPath, iconName);
 
         *icon = _wcsdup(iconPath);
     }
     else
     {
-        *icon = _wcsdup(ContextMenuIcon);
+        *icon = _wcsdup(iconName);
     }
 
     return S_OK;
@@ -112,11 +119,12 @@ IFACEMETHODIMP Invoke(_In_opt_ IShellItemArray* selection, _In_opt_ IBindCtx*) n
                 // 获取 DLL 所在目录
                 wchar_t dllPath[MAX_PATH];
                 if (!GetModuleFileNameW((HMODULE)&__ImageBase, dllPath, MAX_PATH))
+                    CoTaskMemFree(itemName);
                     return E_FAIL;
                 PathRemoveFileSpecW(dllPath);
 
                 wchar_t cmdPath[MAX_PATH];
-                swprintf_s(cmdPath, MAX_PATH, L"%s\\%s", dllPath, ContextMenuCMD);
+                swprintf_s(cmdPath, MAX_PATH, L"%s\\%s", dllPath, Cmd());
 
                 std::wstring cmdline = cmdPath;
                 size_t pos = cmdline.find(L"%1");
@@ -170,10 +178,22 @@ protected:
 class __declspec(uuid(ContextMenuUUID)) ExplorerCommandHandler final : public ExplorerCommandBase {
 public:
     const wchar_t* Title() override { return ContextMenuTitle; }
+    const wchar_t* Icon()  override { return ContextMenuIcon; }
+    const wchar_t* Cmd()   override { return ContextMenuCMD; }
+};
+
+class __declspec(uuid(ContextMenuUUID2)) ExplorerCommandHandler final : public ExplorerCommandBase {
+public:
+    const wchar_t* Title() override { return ContextMenuTitle2; }
+    const wchar_t* Icon()  override { return ContextMenuIcon2; }
+    const wchar_t* Cmd()   override { return ContextMenuCMD2; }
 };
 
 CoCreatableClass(ExplorerCommandHandler)
 CoCreatableClassWrlCreatorMapInclude(ExplorerCommandHandler)
+
+CoCreatableClass(ExplorerCommandHandler2)
+CoCreatableClassWrlCreatorMapInclude(ExplorerCommandHandler2)
 
 STDAPI DllGetActivationFactory(_In_ HSTRING activatableClassId, _COM_Outptr_ IActivationFactory** factory)
 {
