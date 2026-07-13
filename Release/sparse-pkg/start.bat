@@ -2,9 +2,15 @@
 setlocal enabledelayedexpansion
 cd "%~dp0"
 set block=0
-echo "%*" | findstr /C:".msix" >nul
+set "str=%*"
+set "lower="
+for %%A in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do (
+    set "str=!str:%%A=%%A!"
+)
+set "lower=!str!"
+echo %lower% | findstr /C:".msix" >nul
 set msixMatch=!errorlevel!
-echo "%*" | findstr /C:".appx" >nul
+echo %lower% | findstr /C:".appx" >nul
 set appxMatch=!errorlevel!
 if !appxMatch!==0 (
     set block=1
