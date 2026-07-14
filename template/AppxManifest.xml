@@ -59,7 +59,7 @@
 				</com:Extension>
 				     <uap:Extension Category="windows.fileTypeAssociation">
           <uap:FileTypeAssociation Name="@@FILETYPEASSOCIATIONNAME@@">
-            <uap:Logo>@@APPLOGO@@</uap:Logo>
+            <uap:Logo>@@FILETYPEASSOCIATIONLOGO@@</uap:Logo>
             <uap:InfoTip>@@FILETYPEASSOCIATIONINFOTIP@@</uap:InfoTip>
             <uap:SupportedFileTypes>
               <uap:FileType>.msix</uap:FileType>
