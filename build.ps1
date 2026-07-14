@@ -30,7 +30,7 @@ $file_type_association_name = $settings.file_type_association_name
 $file_type_association_logo = $settings.file_type_association_logo
 $file_type_association_info_tip = $settings.file_type_association_info_tip
 $windows_min_version = $settings.windows_min_version
-$windows_max_version_tested = $settings.
+$windows_max_version_tested = $settings.windows_max_version_tested
 
 # context menu settings
 $icon = Get-Escaped -WordParam $settings.icon
