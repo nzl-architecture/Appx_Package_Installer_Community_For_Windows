@@ -4,7 +4,7 @@ Write-Output "Set Location to install location......"
 $scriptPath = $MyInvocation.MyCommand.Definition
 $scriptDir  = Split-Path -Parent $scriptPath
 Set-Location -Path $scriptDir
-Write-Output "Enter to start install Appx Package Installer Community"
+Write-Output "Enter to start install @@APPNAME@@"
 pause
 Write-Output "Installing Certificate......"
 Import-Certificate -FilePath "Key.cer" -CertStoreLocation Cert:\LocalMachine\Root

@@ -16,11 +16,11 @@ powershell.exe -Command "Add-AppxPackage -Path '%*' -ForceApplicationShutdown"
 
 )
 if "%choice%"=="3" (
-set /p "params=Enter params for add appx package %*:"
+set /p "params=Enter params for add appx package %* (system-level):"
 dism.exe -Online -Add-ProvisionedAppxPackage -PackagePath:"%*" %params%
 )
 if "%choice%"=="4" (
-set /p "params=Enter params for add appx package %*:"
+set /p "params=Enter params for add appx package %* (per-user):"
 powershell.exe -Command "Add-AppxPackage -Path "%*" %params%"
 )
 pause
